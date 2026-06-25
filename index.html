@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATAVA Smart Inventory & Profit Matrix V2.0</title>
+    <title>ATAVA Smart Inventory & Profit Matrix V2.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,7 +27,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold tracking-tight mb-0.5">ATAVA Smart Inventory</h1>
-                    <p class="text-xs text-indigo-300 font-medium">Advanced Stock, Return & Profit Analytics Desk (V2.0 Code Enabled)</p>
+                    <p class="text-xs text-indigo-300 font-medium">Advanced Stock, Return & Date Filter Analytics (V2.5)</p>
                 </div>
             </div>
             <div class="text-xs font-semibold bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-300" id="liveClock"></div>
@@ -51,6 +51,22 @@
 
         <!-- TAB 1: DASHBOARD & LIVE ANALYTICS -->
         <div id="tab-dashboard" class="space-y-6">
+            
+            <!-- NEW Feature: Date Picker Row -->
+            <section class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <div class="bg-indigo-50 text-indigo-600 p-2 rounded-lg text-sm"><i class="fa-solid fa-calendar-days"></i></div>
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-700">Filter Ledger by Specific Date</h4>
+                        <p class="text-[11px] text-slate-400">പഴയ തീയതിയിലെ കണക്കുകൾ മാത്രം കാണാൻ താഴെ സെലക്ട് ചെയ്യാം</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <input type="date" id="filterDate" onchange="renderInventory()" class="w-full sm:w-44 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none text-slate-700">
+                    <button onclick="clearDateFilter()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold py-1.5 px-3 rounded-xl transition-all">Clear</button>
+                </div>
+            </section>
+
             <!-- Business KPI Analytics Counters -->
             <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm flex items-center justify-between">
@@ -88,7 +104,7 @@
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
                     <div>
                         <h2 class="text-base font-bold text-slate-800"><i class="fa-solid fa-layer-group text-indigo-600 mr-1.5"></i> Master Stock Registry & Profit Sheet</h2>
-                        <p class="text-xs text-slate-400">തത്സമയ സ്റ്റോക്ക് നിലയും ലാഭവും ഇവിടെ കാണാം</p>
+                        <p class="text-xs text-slate-400" id="tableSubtitle">തത്സമയ സ്റ്റോക്ക് നിലയും ലാഭവും ഇവിടെ കാണാം</p>
                     </div>
                     <input type="text" id="inventorySearch" oninput="renderInventory()" placeholder="🔍 Search code or name..." class="w-full sm:w-64 px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none">
                 </div>
@@ -143,27 +159,28 @@
                     <label class="block text-xs font-semibold text-slate-500 mb-1">Total Imported Quantity</label>
                     <input type="number" id="prodQty" min="1" placeholder="e.g., 50" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none">
                 </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Import Date (തീയതി)</label>
+                    <input type="date" id="prodDate" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none">
+                </div>
                 <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl text-sm shadow-md transition-all">Secure Product Stock</button>
             </form>
         </div>
 
-        <!-- TAB 3: RECORD SALES & RETURNS (BY PRODUCT CODE) -->
+        <!-- TAB 3: RECORD SALES & RETURNS -->
         <div id="tab-sales" class="max-w-xl mx-auto bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hidden">
             <h2 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-cart-plus text-emerald-600"></i> Log Customer Retail Counter / Return</h2>
             <form id="salesForm" class="space-y-4">
-                
-                <!-- Code Quick Fetch Engine -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-500 mb-1">Enter Product Code (കോഡ് ടൈപ്പ് ചെയ്യൂ)</label>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Enter Product Code</label>
                     <div class="flex gap-2">
                         <input type="text" id="saleProdCode" placeholder="eg: BAG01" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold uppercase outline-none border-slate-300 focus:border-indigo-500">
                         <button type="button" onclick="fetchProductByCode()" class="bg-slate-800 text-white text-xs font-bold px-4 rounded-xl hover:bg-slate-700 transition-all">Fetch</button>
                     </div>
                 </div>
 
-                <!-- Live Auto Filled Box -->
                 <div id="quickInfoBox" class="bg-slate-50 p-3 rounded-xl border border-dashed border-slate-200 hidden text-xs space-y-1">
-                    <p class="text-slate-500">Product Name: <strong class="text-slate-800 id-label" id="lblProdName">-</strong></p>
+                    <p class="text-slate-500">Product Name: <strong class="text-slate-800" id="lblProdName">-</strong></p>
                     <p class="text-slate-500">Retail Price: <strong class="text-slate-800" id="lblProdPrice">₹0.00</strong></p>
                     <p class="text-slate-500">Current Live Stock: <strong class="text-emerald-600" id="lblProdStock">0 Pcs</strong></p>
                     <input type="hidden" id="saleProdId">
@@ -190,6 +207,10 @@
                         <input type="number" id="saleDiscount" min="0" value="0" step="0.01" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none">
                     </div>
                 </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Transaction Date (തീയതി)</label>
+                    <input type="date" id="saleDate" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none">
+                </div>
                 <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl text-sm shadow-md transition-all">Submit Order Ledger Entry</button>
             </form>
         </div>
@@ -202,16 +223,18 @@
     </main>
 
     <script>
-        let products = JSON.parse(localStorage.getItem('atava_inv_products_v2')) || [];
-        let logs = JSON.parse(localStorage.getItem('atava_inv_logs_v2')) || [];
+        let products = JSON.parse(localStorage.getItem('atava_inv_products_v2.5')) || [];
+        let logs = JSON.parse(localStorage.getItem('atava_inv_logs_v2.5')) || [];
 
         window.addEventListener('DOMContentLoaded', () => {
             setInterval(() => { document.getElementById('liveClock').innerText = new Date().toLocaleString(); }, 1000);
+            document.getElementById('prodDate').valueAsDate = new Date();
+            document.getElementById('saleDate').valueAsDate = new Date();
+            
             document.getElementById('productForm').addEventListener('submit', handleProductSubmit);
             document.getElementById('salesForm').addEventListener('submit', handleSalesSubmit);
             renderInventory();
 
-            // Auto trigger look-up on typing code
             document.getElementById('saleProdCode').addEventListener('input', function() {
                 fetchProductByCode(false);
             });
@@ -242,16 +265,17 @@
             const wholesale = parseFloat(document.getElementById('prodWholesale').value);
             const retail = parseFloat(document.getElementById('prodRetail').value);
             const qty = parseInt(document.getElementById('prodQty').value);
+            const date = document.getElementById('prodDate').value;
 
-            // Check duplicate code
             if(products.some(p => p.code === code)) {
-                return alert("ഈ കോഡ് ഓൾറെഡി ഉപയോഗിച്ചതാണ് അളിയാ! വേറെ കോഡ് കൊടുക്കൂ.");
+                return alert("ഈ കോഡ് ഓൾറെഡി ഉപയോഗിച്ചതാണ് അളിയാ!");
             }
 
-            products.push({ id: 'p_' + Date.now(), code, name, wholesale, retail, qty });
-            localStorage.setItem('atava_inv_products_v2', JSON.stringify(products));
+            products.push({ id: 'p_' + Date.now(), code, name, wholesale, retail, qty, date });
+            localStorage.setItem('atava_inv_products_v2.5', JSON.stringify(products));
 
             document.getElementById('productForm').reset();
+            document.getElementById('prodDate').valueAsDate = new Date();
             switchTab('tab-dashboard');
             renderInventory();
         }
@@ -268,7 +292,6 @@
             const p = products.find(prod => prod.code === inputCode);
 
             if(p) {
-                // Calculate stock
                 const itemLogs = logs.filter(l => l.prodId === p.id);
                 let sold = 0, returned = 0;
                 itemLogs.forEach(l => { if(l.type === 'sell') sold += l.qty; else returned += l.qty; });
@@ -282,7 +305,7 @@
             } else {
                 box.classList.add('hidden');
                 document.getElementById('saleProdId').value = '';
-                if(alertOnError && inputCode.length > 1) alert("ഈ കോഡിൽ ഒരു പ്രൊഡക്റ്റും കണ്ടില്ല അളിയാ!");
+                if(alertOnError && inputCode.length > 1) alert("ഈ കോഡിൽ പ്രൊഡക്റ്റ് ഇല്ല!");
             }
         }
 
@@ -292,8 +315,9 @@
             const type = document.querySelector('input[name="saleType"]:checked').value;
             const qty = parseInt(document.getElementById('saleQty').value);
             const discount = parseFloat(document.getElementById('saleDiscount').value) || 0;
+            const date = document.getElementById('saleDate').value;
 
-            if(!prodId) return alert("ദയവായി സാധുവായ ഒരു പ്രൊഡക്റ്റ് കോഡ് അടിക്കുക!");
+            if(!prodId) return alert("ദയവായി പ്രൊഡക്റ്റ് കോഡ് അടിക്കുക!");
 
             if (type === 'sell') {
                 const targetProd = products.find(p => p.id === prodId);
@@ -303,16 +327,22 @@
                 const currentStock = targetProd.qty - sold + returned;
 
                 if (qty > currentStock) {
-                    return alert(`സ്റ്റോക്ക് തികയില്ല! നിലവിലെ സ്റ്റോക്ക്: ${currentStock} എണ്ണം മാത്രം.`);
+                    return alert(`സ്റ്റോക്ക് തികയില്ല! നിലവിൽ ഉള്ളത്: ${currentStock}`);
                 }
             }
 
-            logs.push({ id: Date.now(), prodId, type, qty, discount });
-            localStorage.setItem('atava_inv_logs_v2', JSON.stringify(logs));
+            logs.push({ id: Date.now(), prodId, type, qty, discount, date });
+            localStorage.setItem('atava_inv_logs_v2.5', JSON.stringify(logs));
 
             document.getElementById('salesForm').reset();
+            document.getElementById('saleDate').valueAsDate = new Date();
             document.getElementById('quickInfoBox').classList.add('hidden');
             switchTab('tab-dashboard');
+            renderInventory();
+        }
+
+        function clearDateFilter() {
+            document.getElementById('filterDate').value = '';
             renderInventory();
         }
 
@@ -320,18 +350,25 @@
             if(confirm("ഈ ഐറ്റം ഡിലീറ്റ് ചെയ്യണമോ?")) {
                 products = products.filter(p => p.id !== id);
                 logs = logs.filter(l => l.prodId !== id);
-                localStorage.setItem('atava_inv_products_v2', JSON.stringify(products));
-                localStorage.setItem('atava_inv_logs_v2', JSON.stringify(logs));
+                localStorage.setItem('atava_inv_products_v2.5', JSON.stringify(products));
+                localStorage.setItem('atava_inv_logs_v2.5', JSON.stringify(logs));
                 renderInventory();
             }
         }
 
         function renderInventory() {
             const searchKey = document.getElementById('inventorySearch').value.toLowerCase();
+            const filterDate = document.getElementById('filterDate').value;
             const tbody = document.getElementById('inventoryTableBody');
             tbody.innerHTML = '';
 
             let totalInvested = 0, totalDiscount = 0, totalReturnsCount = 0, totalNetProfit = 0;
+
+            if (filterDate) {
+                document.getElementById('tableSubtitle').innerHTML = `Showing results for Date: <strong class="text-indigo-600">${new Date(filterDate).toLocaleDateString('en-GB')}</strong>`;
+            } else {
+                document.getElementById('tableSubtitle').innerText = "തത്സമയ സ്റ്റോക്ക് നിലയും ലാഭവും ഇവിടെ കാണാം";
+            }
 
             if (products.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="10" class="px-4 py-8 text-center text-slate-400 italic">No products added yet.</td></tr>`;
@@ -339,35 +376,55 @@
             }
 
             products.forEach(p => {
-                totalInvested += (p.wholesale * p.qty);
+                // Determine imported count for filtered date or total context
+                let displayImported = p.qty;
+                if (filterDate) {
+                    displayImported = (p.date === filterDate) ? p.qty : 0;
+                    if(p.date === filterDate) {
+                        totalInvested += (p.wholesale * p.qty);
+                    }
+                } else {
+                    totalInvested += (p.wholesale * p.qty);
+                }
 
-                const itemLogs = logs.filter(l => l.prodId === p.id);
+                // Filter operational logs by active target date configuration
+                const rawItemLogs = logs.filter(l => l.prodId === p.id);
+                const activeItemLogs = filterDate ? rawItemLogs.filter(l => l.date === filterDate) : rawItemLogs;
+
                 let soldQty = 0, returnQty = 0, itemDiscount = 0;
-
-                itemLogs.forEach(l => {
+                activeItemLogs.forEach(l => {
                     if (l.type === 'sell') { soldQty += l.qty; itemDiscount += l.discount; }
                     else { returnQty += l.qty; }
                 });
 
+                // Overall master validation for current live stock calculations
+                let totalSoldRaw = 0, totalReturnRaw = 0;
+                rawItemLogs.forEach(l => { if(l.type === 'sell') totalSoldRaw += l.qty; else totalReturnRaw += l.qty; });
+                const finalLiveAvailableStock = p.qty - (totalSoldRaw - totalReturnRaw);
+
                 totalDiscount += itemDiscount;
                 totalReturnsCount += returnQty;
 
-                const finalSold = soldQty - returnQty; 
-                const availableStock = p.qty - finalSold;
-                const itemProfit = (p.retail - p.wholesale) * finalSold - itemDiscount;
+                const finalSoldInPeriod = soldQty - returnQty;
+                const itemProfit = (p.retail - p.wholesale) * finalSoldInPeriod - itemDiscount;
                 totalNetProfit += itemProfit;
 
                 if (p.name.toLowerCase().includes(searchKey) || p.code.toLowerCase().includes(searchKey)) {
-                    let stockBadge = `<span class="bg-slate-100 text-slate-700 px-2 py-1 rounded-md font-bold">${availableStock} Pcs</span>`;
-                    if (availableStock <= 5) {
-                        stockBadge = `<span class="bg-rose-100 text-rose-700 px-2 py-1 rounded-md font-bold animate-pulse">⚠️ Low Stock: ${availableStock}</span>`;
+                    // Check if there is zero activity in the date-filtered view to avoid clutter
+                    if (filterDate && displayImported === 0 && soldQty === 0 && returnQty === 0) {
+                        return; 
+                    }
+
+                    let stockBadge = `<span class="bg-slate-100 text-slate-700 px-2 py-1 rounded-md font-bold">${finalLiveAvailableStock} Pcs</span>`;
+                    if (finalLiveAvailableStock <= 5) {
+                        stockBadge = `<span class="bg-rose-100 text-rose-700 px-2 py-1 rounded-md font-bold animate-pulse">⚠️ Low: ${finalLiveAvailableStock}</span>`;
                     }
 
                     tbody.innerHTML += `
                         <tr class="hover:bg-slate-50/50 transition-colors">
                             <td class="px-4 py-3.5 font-bold text-indigo-600">${p.code}</td>
                             <td class="px-4 py-3.5 font-bold text-slate-900">${p.name}</td>
-                            <td class="px-4 py-3.5 text-center text-slate-500">${p.qty}</td>
+                            <td class="px-4 py-3.5 text-center text-slate-500 font-bold">${displayImported}</td>
                             <td class="px-4 py-3.5 text-center text-indigo-600 font-bold">${soldQty}</td>
                             <td class="px-4 py-3.5 text-center text-rose-500 font-bold">${returnQty}</td>
                             <td class="px-4 py-3.5 text-center">${stockBadge}</td>
@@ -386,6 +443,10 @@
             document.getElementById('statDiscount').innerText = totalDiscount.toLocaleString('en-IN', {minimumFractionDigits: 2});
             document.getElementById('statReturns').innerText = totalReturnsCount;
             document.getElementById('statProfit').innerText = totalNetProfit.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            
+            if (tbody.innerHTML === '') {
+                tbody.innerHTML = `<tr><td colspan="10" class="px-4 py-8 text-center text-slate-400 italic">No transactions or imports on this selected date.</td></tr>`;
+            }
         }
     </script>
 </body>
